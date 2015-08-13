@@ -5,6 +5,7 @@ OnePass
 
 ###Description:
 Written in Go, this password manager asks for only **two** things:
+
     1. Your personally chosen master password.
     2. The name of the account you're trying to log into.
 <br>
