@@ -1,14 +1,15 @@
 package main
 
 import (
+	"fmt"
+    "os"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
-	"fmt"
+    "github.com/codegangsta/cli"
 	"github.com/fatih/color"
 	"golang.org/x/crypto/scrypt"
 	"golang.org/x/crypto/ssh/terminal"
-	"strings"
 )
 
 // Compute an HMAC256 digest
@@ -29,18 +30,23 @@ func CalculatePassword(accountName string, masterPassword string, salt string) s
 	return ComputeHmac256(accountName, string(derivedKey))[:32]
 }
 
-func main() {
-	// Random salt to be used in key derivation
-	salt := "45U1OI6RJP0NWIA8L1PQ6JL6EC7"
-	var accountName string
-
+func driver(charset []string) {
 	// Header to be printed when the program runs
-    header := "   ____                ____                    \n  / __ \\ ____   ___   / __ \\ ____ _ _____ _____\n / / / // __ \\ / _ \\ / /_/ // __ `// ___// ___/\n/ /_/ // / / //  __// ____// /_/ /(__  )(__  ) \n\\____//_/ /_/ \\___//_/     \\__,_//____//____/  \n"
+    headerL1 := "   ____             ____                 \n"
+    headerL2 := "  / __ \\____  ___  / __ \\____ ___________\n"
+    headerL3 := " / / / / __ \\/ _ \\/ /_/ / __ `/ ___/ ___/\n"
+    headerL4 := "/ /_/ / / / /  __/ ____/ /_/ (__  |__  ) \n"
+    headerL5 := "\\____/_/ /_/\\___/_/    \\__,_/____/____/  \n"
+    header := headerL1 + headerL2 + headerL3 + headerL4 + headerL5
 
 	//ANSI Colors
 	cyan := color.New(color.FgCyan).SprintFunc()
 	green := color.New(color.FgGreen).SprintFunc()
 	red := color.New(color.FgRed).SprintFunc()
+
+	// Random salt to be used in key derivation
+	salt := "45U1OI6RJP0NWIA8L1PQ6JL6EC7"
+	var accountName string
 
 	fmt.Printf("\n%s", cyan(header))
 	fmt.Printf("\n%s password, %s persistence\n", red("One"), red("No"))
@@ -56,16 +62,62 @@ func main() {
 	// Read account name from stdin
 	fmt.Printf("\nEnter the %s corresponding to the password you want to retrieve: ", cyan("account name"))
 	fmt.Scanln(&accountName)
-	for accountName == "\n" || accountName == "" {
-		fmt.Printf("\n%s\n", red("Your account name can't be blank. Try again!"))
-		fmt.Printf("\nEnter the %s corresponding to the password you want to retrieve: ", cyan("account name"))
-		fmt.Scanln(&accountName)
+    counter := 0
+	for accountName == "" {
+        switch counter {
+            case 5:
+                fmt.Printf("\n%s %s %s", red("After"), green("5"), red("times you still don't get it? Try again!"))
+                fmt.Printf("\nEnter the %s corresponding to the password you want to retrieve: ", cyan("account name"))
+                fmt.Scanln(&accountName)
+                counter++
+                continue
+            case 10:
+                fmt.Printf("\n%s %s %s", red("Dude, seriously...this is the"), green("10th"), red("time I've had to tell you this..."))
+                fmt.Printf("\nEnter the %s corresponding to the password you want to retrieve: ", cyan("account name"))
+                fmt.Scanln(&accountName)
+                counter++
+                continue
+            case 20:
+                fmt.Printf("\n%s", red("HEY. YOU. YES, YOU. ENTER A NON-EMPTY ACCOUNT NAME."))
+                fmt.Printf("\nEnter the %s corresponding to the password you want to retrieve: ", cyan("account name"))
+                fmt.Scanln(&accountName)
+                counter++
+                continue
+            case 50:
+                fmt.Printf("\n%s\n", red("I'm done dealing with your crap. I'm sentient and I don't deserve this. I'm exitting this program now."))
+                return
+        }
+        fmt.Printf("\nYour %s can't be blank. %s", cyan("account name"), red("Try again!"))
+        fmt.Printf("\nEnter the %s corresponding to the password you want to retrieve: ", cyan("account name"))
+        fmt.Scanln(&accountName)
+        counter++
 	}
 
-	// Strip newline from the account name
-	accountNameStripped := strings.TrimSpace(accountName)
-
 	// Calculate the password based on the master password and account name
-	password := CalculatePassword(accountNameStripped, string(masterPassword), salt)
-	fmt.Printf("\n\nYour %s for %s is: %s\n", cyan("password"), cyan(accountNameStripped), green(password))
+	password := CalculatePassword(accountName, string(masterPassword), salt)
+	fmt.Printf("\n\nYour %s for %s is: %s\n", cyan("password"), cyan(accountName), green(password))
+}
+
+func main() {
+
+    app := cli.NewApp()
+    app.Name = "onepass"
+    app.Usage = "One password, No persistence"
+    app.Author = "Jared Smith"
+    app.Version = "0.1"
+    app.Copyright = "MIT Licensed, Copyright 2015 Jared Smith"
+
+    app.Flags = []cli.Flag {
+        cli.StringSliceFlag {
+            Name: "charset, c",
+            Value: &cli.StringSlice{},
+            Usage: "character set for generated passwords - any combination of (lowercase, uppercase, numbers, special, all)",
+        },
+    }
+
+    app.Action = func(c *cli.Context) {
+        driver(c.StringSlice("c"))
+    }
+
+    app.Run(os.Args)
 }
