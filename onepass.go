@@ -35,7 +35,7 @@ func main() {
 	var accountName string
 
 	// Header to be printed when the program runs
-	header := "  ___           ___            \n / _ \\ _ _  ___| _ \\__ _ ______\n| (_) | ' \\/ -_)  _/ _` (_-<_-<\n \\___/|_||_\\___|_| \\__,_/__/__/\n"
+    header := "   ____                ____                    \n  / __ \\ ____   ___   / __ \\ ____ _ _____ _____\n / / / // __ \\ / _ \\ / /_/ // __ `// ___// ___/\n/ /_/ // / / //  __// ____// /_/ /(__  )(__  ) \n\\____//_/ /_/ \\___//_/     \\__,_//____//____/  \n"
 
 	//ANSI Colors
 	cyan := color.New(color.FgCyan).SprintFunc()
@@ -43,7 +43,7 @@ func main() {
 	red := color.New(color.FgRed).SprintFunc()
 
 	fmt.Printf("\n%s", cyan(header))
-	fmt.Printf("\n%s password, %s persistence\n\n", red("One"), red("No"))
+	fmt.Printf("\n%s password, %s persistence\n", red("One"), red("No"))
 	fmt.Printf("Written by: %s\n", green("Jared Smith"))
 
 	// Read master password from stdin
